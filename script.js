@@ -2,34 +2,23 @@
 const navbar = document.getElementById("mainNavbar");
 
 let lastScrollTop = 0;
-
 window.addEventListener("scroll", function () {
-  const scrollTopPosition =
-    window.pageYOffset ||
-    document.documentElement.scrollTop ||
-    document.body.scrollTop;
-  
-  const currentScrollTop = window.scrollY;
-  
-  if (currentScrollTop > 50) {
+  if (window.scrollY > 50) {
     navbar.classList.add("scrolled");
-    navbar.style.top = "20px";
   } else {
     navbar.classList.remove("scrolled");
-    navbar.style.top = "0px";
   }
-  
-  // Detect scroll direction
-  if (currentScrollTop < lastScrollTop) {
-    // Scrolling up (to top)
-    console.log("Scrolling up");
-    navbar.style.top = "0px";
-  } else {
-    // Scrolling down
-    console.log("Scrolling down");
-  }
-  
-  lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+
+const currentScrollTop = window.scrollY;
+ 
+if (window.innerWidth <= 991) {
+    if (currentScrollTop < lastScrollTop) {
+        navbar.style.top = "0px";
+    } else {
+        navbar.style.top = "20px";
+    }
+}
+lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
 });
 
 // Smooth scroll for anchor links

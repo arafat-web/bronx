@@ -14,7 +14,7 @@ body {
 
 .navbar.scrolled {
     background: #ffffff;
-    /* padding: 12px 0; */
+    padding: 12px 0;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
 }
 
