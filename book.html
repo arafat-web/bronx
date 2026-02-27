@@ -175,23 +175,31 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="zipCode" placeholder="ZIP Code" required>
-                                            <label for="zipCode">
+                                            <input type="text" class="form-control" name="zip" id="zip" placeholder="ZIP Code" required>
+                                            <label for="zip">
                                                 <i class="fas fa-map-marker-alt me-2"></i>ZIP Code
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="city" placeholder="City">
+                                            <input type="text" class="form-control" name="city" id="city" placeholder="City" required>
                                             <label for="city">
                                                 <i class="fas fa-city me-2"></i>City
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" name="state" id="state" placeholder="State" maxlength="2" required>
+                                            <label for="state">
+                                                <i class="fas fa-location-dot me-2"></i>State
+                                            </label>
+                                        </div>
+                                    </div>
                                     <div class="col-12">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="address" placeholder="Street Address">
+                                            <input type="text" class="form-control" name="address" id="address" placeholder="Street Address">
                                             <label for="address">
                                                 <i class="fas fa-location-dot me-2"></i>Street Address (Optional)
                                             </label>
@@ -209,23 +217,23 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="firstName" placeholder="First Name" required>
-                                            <label for="firstName">
+                                            <input type="text" class="form-control" name="first_name" id="first_name" placeholder="First Name" required>
+                                            <label for="first_name">
                                                 <i class="fas fa-user me-2"></i>First Name
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="text" class="form-control" id="lastName" placeholder="Last Name" required>
-                                            <label for="lastName">
+                                            <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Last Name" required>
+                                            <label for="last_name">
                                                 <i class="fas fa-user me-2"></i>Last Name
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="tel" class="form-control" id="phone" placeholder="Phone Number" required>
+                                            <input type="tel" class="form-control" name="phone" id="phone" placeholder="Phone Number" required>
                                             <label for="phone">
                                                 <i class="fas fa-phone me-2"></i>Phone Number
                                             </label>
@@ -233,7 +241,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="email" class="form-control" id="email" placeholder="Email Address" required>
+                                            <input type="email" class="form-control" name="email" id="email" placeholder="Email Address" required>
                                             <label for="email">
                                                 <i class="fas fa-envelope me-2"></i>Email Address
                                             </label>
@@ -251,35 +259,52 @@
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <input type="date" class="form-control" id="preferredDate" placeholder="Preferred Date">
-                                            <label for="preferredDate">
+                                            <input type="date" class="form-control" name="service_date" id="service_date" placeholder="Preferred Date" required>
+                                            <label for="service_date">
                                                 <i class="fas fa-calendar me-2"></i>Preferred Date
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <select class="form-select" id="timeSlot">
-                                                <option value="">Select Time</option>
-                                                <option value="morning">Morning (8AM - 12PM)</option>
-                                                <option value="afternoon">Afternoon (12PM - 5PM)</option>
-                                                <option value="flexible">Flexible</option>
-                                            </select>
-                                            <label for="timeSlot">
-                                                <i class="fas fa-clock me-2"></i>Time Preference
+                                            <input type="time" class="form-control" name="service_time" id="service_time" value="09:00">
+                                            <label for="service_time">
+                                                <i class="fas fa-clock me-2"></i>Preferred Time
                                             </label>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-floating">
-                                            <textarea class="form-control" id="additionalNotes" placeholder="Additional Notes" style="height: 100px"></textarea>
-                                            <label for="additionalNotes">
+                                            <textarea class="form-control" name="customer_notes" id="customer_notes" placeholder="Additional Notes" style="height: 100px"></textarea>
+                                            <label for="customer_notes">
                                                 <i class="fas fa-comment me-2"></i>Additional Notes (Optional)
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Payment Method -->
+                            <div class="form-section">
+                                <h5 class="form-section-title">
+                                    <span class="step-number">6</span>
+                                    Payment Method
+                                </h5>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <select class="form-select" name="payment_method" id="payment_method" required>
+                                            <option value="">Select Payment Method</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="stripe">Credit Card</option>
+                                            <option value="check">Check</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden API Fields -->
+                            <input type="hidden" name="frequency_id" value="1">
+                            <input type="hidden" name="arrival_window" value="120">
 
                             <!-- Submit -->
                             <div class="form-section">
@@ -504,7 +529,7 @@
         </div>
     </footer>
 
-    <!-- <script src="script.js"></script> -->
+    <script src="script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
