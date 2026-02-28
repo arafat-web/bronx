@@ -44,7 +44,8 @@ Located in `script.js`:
 
 ```javascript
 const LAUNCH27_CONFIG = {
-  subdomain: "artech",
+  subdomain: "arafatweb", // Launch27 Subdomain (without -sandbox)
+  environment: "sandbox", // "sandbox" or "production"
   apiVersion: "latest",
   endpoints: {
     booking: "/booking",
@@ -54,18 +55,39 @@ const LAUNCH27_CONFIG = {
     locations: "/booking-location"
   }
 };
+
+function getLaunch27BaseUrl() {
+  if (LAUNCH27_CONFIG.environment === "sandbox") {
+    return `https://${LAUNCH27_CONFIG.subdomain}-sandbox.l27.co/${LAUNCH27_CONFIG.apiVersion}`;
+  } else {
+    return `https://${LAUNCH27_CONFIG.subdomain}.launch27.com/${LAUNCH27_CONFIG.apiVersion}`;
+  }
+}
 ```
+
+### URL Format Guide
+
+**Sandbox (Testing):**
+- URL: `https://{subdomain}-sandbox.l27.co/latest/`
+- Example: `https://arafatweb-sandbox.l27.co/latest/`
+- Use when: Testing and development
+
+**Production:**
+- URL: `https://{subdomain}.launch27.com/latest/`
+- Example: `https://arafatweb.launch27.com/latest/`
+- Use when: Live bookings
 
 ### How to Update
 
-If you need to change the subdomain:
+If you need to change the subdomain or environment:
 
 1. Open `script.js`
 2. Find the `LAUNCH27_CONFIG` object
-3. Update the `subdomain` property:
+3. Update the `subdomain` property (without "-sandbox" or domain):
    ```javascript
    subdomain: "your-new-subdomain"
    ```
+4. Change `environment` to "sandbox" or "production"
 
 ### Environment Variables (Future Enhancement)
 

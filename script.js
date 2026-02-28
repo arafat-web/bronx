@@ -177,9 +177,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // Launch27 API Integration
-// Configure your Launch27 subdomain here (e.g., "your-company" from "your-company.launch27.com")
+// Configure your Launch27 subdomain and API key
 const LAUNCH27_CONFIG = {
-  subdomain: "artech", // Launch27 Subdomain
+  subdomain: "arafatweb", // Launch27 Account subdomain (from your admin panel)
+  environment: "sandbox", // "sandbox" or "production"
   apiVersion: "latest",
   endpoints: {
     booking: "/booking",
@@ -194,7 +195,24 @@ const LAUNCH27_CONFIG = {
  * Get the Launch27 API base URL
  */
 function getLaunch27BaseUrl() {
-  return `https://${LAUNCH27_CONFIG.subdomain}.launch27.com/${LAUNCH27_CONFIG.apiVersion}`;
+  const { subdomain, environment } = LAUNCH27_CONFIG;
+  
+  if (environment === "sandbox") {
+    // Sandbox: https://subdomain-sandbox.l27.co/latest
+    return `https://${subdomain}-sandbox.l27.co/${LAUNCH27_CONFIG.apiVersion}`;
+  } else {
+    // Production: https://subdomain.launch27.com/latest
+    return `https://${subdomain}.launch27.com/${LAUNCH27_CONFIG.apiVersion}`;
+  }
+}
+
+/**
+ * Get common headers for API requests
+ */
+function getLaunch27Headers() {
+  return {
+    "Content-Type": "application/json"
+  };
 }
 
 /**
@@ -246,20 +264,38 @@ async function getLaunch27Services(locationId = null) {
 }
 
 /**
- * Get location details by address
+ * Get location details by address (Location for booking endpoint)
  */
 async function getLaunch27Location(address, city = "", state = "", zip = "") {
   try {
-    const params = new URLSearchParams({
-      address: address,
-      city: city,
-      state: state,
-      zip: zip
+    // Build query parameters - all address components needed
+    const params = new URLSearchParams();
+    if (address && address.trim()) params.append("address", address);
+    if (city && city.trim()) params.append("city", city);
+    if (state && state.trim()) params.append("state", state);
+    if (zip && zip.trim()) params.append("zip", zip);
+    
+    const url = `${getLaunch27BaseUrl()}${LAUNCH27_CONFIG.endpoints.locations}?${params.toString()}`;
+    console.log("=== LAUNCH27 DEBUG ===");
+    console.log("Base URL:", getLaunch27BaseUrl());
+    console.log("Endpoint:", LAUNCH27_CONFIG.endpoints.locations);
+    console.log("Full Location API URL:", url);
+    console.log("=====================");
+    
+    const response = await fetch(url, {
+      method: "GET"
     });
     
-    const response = await fetch(`${getLaunch27BaseUrl()}${LAUNCH27_CONFIG.endpoints.locations}?${params}`);
-    if (!response.ok) throw new Error("Failed to fetch location");
-    return await response.json();
+    if (!response.ok) {
+      console.error(`Location API error: ${response.status} ${response.statusText}`);
+      const errorBody = await response.text();
+      console.error("Response body:", errorBody);
+      return null;
+    }
+    
+    const result = await response.json();
+    console.log("Location API response:", result);
+    return result;
   } catch (error) {
     console.error("Launch27 Location Error:", error);
     return null;
@@ -272,17 +308,30 @@ async function getLaunch27Location(address, city = "", state = "", zip = "") {
  */
 async function createLaunch27Booking(bookingData) {
   try {
-    const response = await fetch(`${getLaunch27BaseUrl()}${LAUNCH27_CONFIG.endpoints.booking}`, {
+    const url = `${getLaunch27BaseUrl()}${LAUNCH27_CONFIG.endpoints.booking}`;
+    console.log("Booking API URL:", url);
+    console.log("Booking data:", bookingData);
+    
+    const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: getLaunch27Headers(),
       body: JSON.stringify(bookingData)
     });
 
+    console.log("Response status:", response.status);
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create booking");
+      let error;
+      try {
+        error = await response.json();
+      } catch (e) {
+        error = { message: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      if (response.status === 404) {
+        throw new Error("Booking endpoint not found. Please check your API configuration.");
+      }
+      throw new Error(error.message || `Booking failed: ${response.status}`);
     }
 
     const result = await response.json();
@@ -329,6 +378,17 @@ async function handleBookingFormSubmit(event) {
       throw new Error("Please fill in all required fields");
     }
 
+    // Validate service date is not in the past
+    const selectedDate = new Date(serviceDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const minDate = new Date(today);
+    minDate.setDate(minDate.getDate() + 2); // Require 2 days advance booking
+    
+    if (selectedDate < minDate) {
+      throw new Error("Please select a date at least 2 days from today");
+    }
+
     // Get all checked services from checkboxes
     const serviceCheckboxes = form.querySelectorAll('input[name="service"]:checked');
     if (serviceCheckboxes.length === 0) {
@@ -353,6 +413,7 @@ async function handleBookingFormSubmit(event) {
 
     // Build booking request object matching Launch27 API schema
     const bookingRequest = {
+      location_id: location.location_id,
       user: {
         email: email,
         first_name: firstName,
@@ -403,7 +464,23 @@ async function handleBookingFormSubmit(event) {
 
   } catch (error) {
     console.error("Booking submission error:", error);
-    showErrorMessage(`Booking Error: ${error.message}`);
+    
+    // Provide user-friendly error messages
+    let errorMessage = error.message;
+    
+    if (error.message.includes("Unable to verify service location")) {
+      errorMessage = "We couldn't verify service at this location. Please double-check your address.";
+    } else if (error.message.includes("spot has been taken")) {
+      errorMessage = "This date/time slot is no longer available. Please select a different date.";
+    } else if (error.message.includes("location")) {
+      errorMessage = "Service is not available at this address. Please verify your location.";
+    } else if (error.message.includes("404")) {
+      errorMessage = "Booking service is temporarily unavailable. Please try again later.";
+    } else if (error.message.includes("Network")) {
+      errorMessage = "Network error. Please check your connection and try again.";
+    }
+    
+    showErrorMessage(`Booking Error: ${errorMessage}`);
   } finally {
     // Restore submit button
     submitBtn.disabled = false;
@@ -456,5 +533,14 @@ document.addEventListener("DOMContentLoaded", function() {
   const bookingForm = document.getElementById("bookingForm");
   if (bookingForm) {
     bookingForm.addEventListener("submit", handleBookingFormSubmit);
+    
+    // Set minimum date to 2 days from today
+    const serviceDateInput = document.getElementById("service_date");
+    if (serviceDateInput) {
+      const minDate = new Date();
+      minDate.setDate(minDate.getDate() + 2); // 2 days from today
+      const minDateString = minDate.toISOString().split('T')[0];
+      serviceDateInput.setAttribute("min", minDateString);
+    }
   }
 });
